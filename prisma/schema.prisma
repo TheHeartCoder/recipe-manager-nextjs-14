@@ -1,0 +1,78 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// schema.prisma
+
+// Define the User collection
+model User {
+  userId    String   @id @map("_id") // Map to MongoDB's _id field
+  username  String   @unique
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  // Define the relationship with Recipes
+  recipes      Recipe[]
+  // Define the relationship with SavedRecipes
+  savedRecipes SavedRecipe[]
+  // Define the relationship with Ratings
+  ratings      Rating[]
+}
+
+// Define the Recipe collection
+model Recipe {
+  recipeId             String   @id @default(auto()) @map("_id") @db.ObjectId // Map to MongoDB's _id field
+  title                String
+  description          String
+  ingredients          String[]
+  steps                String[]
+  image                String
+  category            String
+  cookingTimeInMinutes Int
+  createdAt            DateTime @default(now())
+
+  // Define the relationship with Users
+  author   User   @relation(fields: [authorId], references: [userId])
+  authorId String
+
+  // Define the relationship with SavedRecipes
+  savedBy SavedRecipe[]
+  // Define the relationship with Ratings
+  ratings Rating[]
+}
+
+// Define the SavedRecipe collection
+model SavedRecipe {
+  savedRecipeId String   @id @default(auto()) @map("_id") @db.ObjectId // Map to MongoDB's _id field
+  savedAt       DateTime @default(now())
+
+  // Define the relationship with Users
+  user   User   @relation(fields: [userId], references: [userId])
+  userId String
+
+  // Define the relationship with Recipes
+  recipe   Recipe @relation(fields: [recipeId], references: [recipeId])
+  recipeId String @db.ObjectId
+}
+
+// Define the Rating collection
+model Rating {
+  ratingId String   @id @default(auto()) @map("_id") @db.ObjectId // Map to MongoDB's _id field
+  rating   Int
+  comment  String?
+  ratedAt  DateTime @default(now())
+
+  // Define the relationship with Users
+  user   User   @relation(fields: [userId], references: [userId])
+  userId String
+
+  // Define the relationship with Recipes
+  recipe   Recipe @relation(fields: [recipeId], references: [recipeId])
+  recipeId String @db.ObjectId
+}
