@@ -222,7 +222,7 @@ export async function saveRating(
         });
 
         const avgRating =
-            ratings.reduce((acc, curr) => acc + curr.rating, 0) /
+            ratings.reduce((acc: any, curr: any) => acc + curr.rating, 0) /
             ratings.length;
 
         await prisma.recipe.update({
