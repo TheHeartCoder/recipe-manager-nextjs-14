@@ -111,7 +111,11 @@ const Header: React.FC<HeaderProps> = () => {
 
                         <li>
                             <SignedOut>
-                                <SignInButton />
+                                <SignInButton>
+                                    <button className='items-center text-white hover:text-gray-300 transition-colors duration-300'>
+                                        Sign in
+                                    </button>
+                                </SignInButton>
                             </SignedOut>
                             <SignedIn>
                                 <UserButton />
