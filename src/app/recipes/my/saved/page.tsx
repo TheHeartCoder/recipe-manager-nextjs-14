@@ -1,5 +1,7 @@
+import { getSavedRecipes } from '@/app/action';
 import RecipeList from '@/app/components/RecipeList';
 import SearchZone from '@/app/components/SearchZone';
+import { auth } from '@clerk/nextjs/server';
 import React, { FC } from 'react';
 
 const MySavedRecipes: FC<{
@@ -10,7 +12,13 @@ const MySavedRecipes: FC<{
         searchText: string;
         sortBy: string;
     };
-}> = ({ searchParams }) => {
+}> = async ({ searchParams }) => {
+    const { userId } = auth();
+    const data = await getSavedRecipes({
+        authorId: userId || '',
+        ...searchParams
+    });
+
     return (
         <main className='container mx-auto py-8 px-6'>
             <SearchZone
@@ -18,7 +26,12 @@ const MySavedRecipes: FC<{
                 searchValue={searchParams.searchText}
                 sortValue={searchParams.sortBy}
             />
-            {/* <RecipeList recipes={[]}  path={'/recipes/my/saved'} /> */}
+            <RecipeList
+                recipes={data.recipes}
+                currentPage={data.page}
+                path={'/recipes/my/saved'}
+                isSavedRecipe={true}
+            />
         </main>
     );
 };

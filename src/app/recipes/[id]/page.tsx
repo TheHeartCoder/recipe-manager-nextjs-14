@@ -16,14 +16,16 @@ const RecipeDetailsPage: FC<{ params: { id: string } }> = async ({
     const { userId } = auth();
     const recipe = await getReciepe(params?.id);
     const data = await getRecipes({ category: recipe.category, limit: 4 });
-    const [existSavedRecipe, existRating] = await Promise.allSettled([
-        getSavedRecipe(userId || '', recipe.recipeId),
-        getSavedRating(userId || '', recipe.recipeId)
+    const [existSavedRecipe, existRating] = await Promise.all([
+        getSavedRecipe(recipe.recipeId, userId || ''),
+        getSavedRating(recipe.recipeId, userId || '')
     ]);
 
     const filteredRecipes = data.recipes?.filter(
         (r) => r.recipeId !== recipe.recipeId
     );
+
+    console.log(existRating, existSavedRecipe);
 
     return (
         <>

@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import RecipeCard from './RecipeCard';
 import Link from 'next/link';
-import { auth, currentUser } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 
 interface RecipeProps {
     recipeId: string;
@@ -20,8 +20,15 @@ const RecipeList: FC<{
     currentPage?: number;
     path?: string;
     isMyRecipe?: boolean;
-}> = async ({ recipes, currentPage = 1, path = '/', isMyRecipe }) => {
-    const user = await currentUser();
+    isSavedRecipe?: boolean;
+}> = async ({
+    recipes,
+    currentPage = 1,
+    path = '/',
+    isMyRecipe,
+    isSavedRecipe
+}) => {
+    const { userId } = auth();
     return (
         <>
             {recipes?.length < 1 ? (
@@ -35,8 +42,9 @@ const RecipeList: FC<{
                             <RecipeCard
                                 key={recipe.id}
                                 recipe={recipe}
-                                user={user}
+                                userId={userId}
                                 isMyRecipe={isMyRecipe || false}
+                                isSavedRecipe={isSavedRecipe || false}
                             />
                         ))}
                     </div>

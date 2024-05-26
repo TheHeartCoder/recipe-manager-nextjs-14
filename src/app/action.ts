@@ -4,7 +4,7 @@ import { prisma } from './lib/prisma';
 import { notFound, redirect } from 'next/navigation';
 import { z } from 'zod';
 import { sortMethods } from './constants/recipe.constants';
-import { clerkClient } from '@clerk/nextjs/server';
+import { clerkClient, auth } from '@clerk/nextjs/server';
 import { revalidatePath } from 'next/cache';
 
 const recipeSchema = z.object({
@@ -25,9 +25,6 @@ export const getReciepe = cache(async (recipeId: string) => {
     });
     if (!recipe) notFound();
     const response = await clerkClient.users.getUser(recipe.authorId);
-    console.log(response);
-    console.log(response.emailAddresses[0].emailAddress);
-
     return {
         ...recipe,
         author: {
@@ -167,8 +164,6 @@ export async function updateRecipe(
             category: formData.get('category')
         };
 
-        console.log(payload);
-
         // Validate the data
         const parsedData: any = recipeSchema.safeParse(payload);
 
@@ -180,9 +175,6 @@ export async function updateRecipe(
                     .join('\n')
             );
         }
-
-        console.log(parsedData, authorId, recipeId);
-
         // update the recipe in the database
         recipe = await prisma.recipe.update({
             where: { recipeId, authorId },
@@ -202,13 +194,13 @@ export async function saveRecipe(userId: string, recipeId: string) {
         }
 
         await prisma.savedRecipe.create({
-            data: { userId, recipeId }
+            data: { userId, recipeId: recipeId.toString() }
         });
     } catch (error: any) {
         console.log(error);
         throw new Error(error.message || 'Internal server error');
     }
-    redirect('/recipes/my/saved');
+    revalidatePath(`/recipes/${recipeId}`);
 }
 
 export async function saveRating(
@@ -244,6 +236,134 @@ export async function saveRating(
     revalidatePath(`/recipes/${recipeId}`);
 }
 
+export const getSavedRecipes = cache(
+    async (data: {
+        searchText?: string;
+        authorId?: string;
+        page?: number;
+        limit?: number;
+        category?: string;
+        sortBy?: string;
+    }) => {
+        const {
+            searchText,
+            authorId,
+            page = 1,
+            limit = 12,
+            category,
+            sortBy
+        } = data;
+
+        try {
+            let whereClause: any = {};
+            let orderByClause: any = {
+                'recipe.createdAt': -1
+            };
+
+            if (searchText) {
+                whereClause = {
+                    ...whereClause,
+                    'recipe.title': {
+                        $regex: searchText,
+                        $options: 'i'
+                    }
+                };
+            }
+
+            if (category) {
+                whereClause = {
+                    ...whereClause,
+                    'recipe.category': category
+                };
+            }
+
+            if (sortBy) {
+                orderByClause = sortMethods[sortBy]?.sortBy;
+                let existKey = Object.keys(orderByClause)[0];
+                const newKey = `recipe.${existKey}`;
+                console.log({
+                    [newKey]: orderByClause[existKey]
+                });
+
+                orderByClause = {
+                    [newKey]: orderByClause[existKey]
+                };
+            }
+
+            const pipeline: any = [
+                {
+                    $match: { userId: authorId }
+                }
+            ];
+
+            if (Object.keys(whereClause).length < 1) {
+                pipeline.push({
+                    $skip: (page - 1) * limit
+                });
+                pipeline.push({
+                    $limit: limit
+                });
+            }
+
+            pipeline.push({
+                $lookup: {
+                    from: 'Recipe',
+                    localField: 'recipeId',
+                    foreignField: '_id',
+                    as: 'recipe'
+                }
+            });
+            pipeline.push({
+                $unwind: '$recipe'
+            });
+
+            if (Object.keys(whereClause).length > 0) {
+                pipeline.push({
+                    $match: whereClause
+                });
+            }
+
+            if (Object.keys(orderByClause).length > 0) {
+                pipeline.push({
+                    $sort: orderByClause
+                });
+            }
+
+            if (Object.keys(whereClause).length > 0) {
+                pipeline.push({
+                    $match: whereClause
+                });
+
+                pipeline.push({
+                    $skip: (page - 1) * limit
+                });
+                pipeline.push({
+                    $limit: limit
+                });
+            }
+
+            const recipes: any = await prisma.savedRecipe.aggregateRaw({
+                pipeline
+            });
+
+            return {
+                recipes:
+                    recipes?.length > 0
+                        ? recipes.map((item: any) => {
+                              return {
+                                  ...item.recipe,
+                                  recipeId: item?.recipe?._id?.['$oid']
+                              };
+                          })
+                        : [],
+                page: data?.page || 1
+            };
+        } catch (error: any) {
+            throw new Error(`Failed to fetch saved recipes: ${error.message}`);
+        }
+    }
+);
+
 export const getSavedRecipe = cache(
     async (recipeId: string, userId: string) => {
         const savedRecipe = await prisma.savedRecipe.findFirst({
@@ -261,3 +381,31 @@ export const getSavedRating = cache(
         return rating;
     }
 );
+
+export async function deleteRecipe(authorId: string, recipeId: string) {
+    try {
+        await prisma.recipe.delete({ where: { recipeId, authorId } });
+    } catch (error: any) {
+        throw new Error(`Failed to delete recipes: ${error.message}`);
+    }
+    revalidatePath('/recipes/my/all');
+}
+
+export async function deleteSavedRecipe(authorId: string, recipeId: string) {
+    try {
+        console.log({
+            recipeId,
+            userId: authorId
+        });
+
+        await prisma.savedRecipe.deleteMany({
+            where: {
+                recipeId,
+                userId: authorId
+            }
+        });
+    } catch (error: any) {
+        throw new Error(`Failed to delete saved recipes: ${error.message}`);
+    }
+    revalidatePath('/recipes/my/saved');
+}

@@ -30,14 +30,17 @@ export const CATEGORY = [
 export const sortMethods: any = {
     NewestFirst: {
         label: 'Newest First',
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        sortBy: { createdAt: -1 }
     },
     LessCookingTime: {
         label: 'Less Cooking Time',
-        orderBy: { cookingTimeInMinutes: 'asc' }
+        orderBy: { cookingTimeInMinutes: 'asc' },
+        sortBy: { cookingTimeInMinutes: 1 }
     },
     BestRated: {
         label: 'Best Rated',
-        orderBy: { rating: 'desc' }
+        orderBy: { rating: 'desc' },
+        sortBy: { rating: -1 }
     }
 };

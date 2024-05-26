@@ -1,23 +1,42 @@
-// components/RecipeCard.tsx
+'use client';
 
-import { User } from '@clerk/nextjs/server';
+// import { User } from '@clerk/nextjs/server';
 import Link from 'next/link';
+import { deleteRecipe, deleteSavedRecipe } from '../action';
 
 interface Recipe {
-    recipeId: number;
+    recipeId: string;
     title: string;
     image: string;
     rating: number;
     cookingTimeInMinutes: string;
     category: string;
-    published: boolean;
+    _id: string;
 }
 
 const RecipeCard: React.FC<{
     recipe: Recipe;
-    user: User | null;
+    userId?: string;
     isMyRecipe?: boolean;
-}> = ({ recipe, user, isMyRecipe }) => {
+    isSavedRecipe?: boolean;
+}> = ({ recipe, userId, isMyRecipe, isSavedRecipe }) => {
+    console.log(recipe);
+
+    const handleDelete = async (e: any) => {
+        e.preventDefault();
+        if (!userId) return;
+        try {
+            console.log(recipe);
+
+            if (isSavedRecipe) {
+                await deleteSavedRecipe(userId || '', recipe.recipeId);
+            } else {
+                await deleteRecipe(userId || '', recipe.recipeId);
+            }
+        } catch (error) {
+            console.error('Failed to delete the recipe:', error);
+        }
+    };
     return (
         <Link
             href={`/recipes/${recipe.recipeId}`}
@@ -76,24 +95,24 @@ const RecipeCard: React.FC<{
                             </span>
                         </div>
                     </div>
-                    {user?.id && isMyRecipe && (
+                    {userId && (isMyRecipe || isSavedRecipe) && (
                         <div className='flex justify-end'>
                             <Link
                                 href={`/recipes/create-edit?recipeId=${recipe.recipeId}`}
                                 className='bg-blue-500 text-white py-1 px-4 rounded-md mr-2'
+                                hidden={isSavedRecipe}
                             >
                                 Edit
                             </Link>
-                            <button className='bg-red-500 text-white py-1 px-4 rounded-md mr-2'>
+                            {/* <form onSubmit={handleDelete}> */}
+                            <button
+                                className='bg-red-500 text-white py-1 px-4 rounded-md mr-2'
+                                onClick={(e) => handleDelete(e)}
+                                // type='submit'
+                            >
                                 Delete
                             </button>
-                            <button
-                                className={`bg-${
-                                    recipe.published ? 'green' : 'gray'
-                                }-500 text-white py-1 px-4 rounded-md`}
-                            >
-                                {recipe.published ? 'Unpublish' : 'Publish'}
-                            </button>
+                            {/* </form> */}
                         </div>
                     )}
                 </div>
