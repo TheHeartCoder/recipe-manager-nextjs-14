@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Rating from 'react-rating';
 import { saveRating, saveRecipe } from '@/app/action';
 import { Recipe } from '@/app/lib/interfaces/recipe.interface';
+import Image from 'next/image';
 
 const RecipeDetails: FC<{
     recipe: Recipe;
@@ -12,6 +13,7 @@ const RecipeDetails: FC<{
     alreadyRated?: boolean;
     saved?: boolean;
 }> = ({ recipe, userId, alreadyRated, saved }) => {
+    const RatingComponent: any = Rating;
     const handleSave = async () => {
         if (!saved) await saveRecipe(userId, recipe.recipeId);
     };
@@ -26,7 +28,7 @@ const RecipeDetails: FC<{
             <div className='flex items-center justify-between mb-6'>
                 <h1 className='text-3xl font-bold text-gray-800 flex items-center'>
                     {recipe.title}
-                    <Rating
+                    <RatingComponent
                         initialRating={recipe.rating}
                         readonly={true}
                         className='ml-2 text-yellow-400'
@@ -87,7 +89,7 @@ const RecipeDetails: FC<{
 
                     {!alreadyRated && recipe.authorId !== userId && (
                         <div className='flex items-center space-x-2'>
-                            <Rating
+                            <RatingComponent
                                 initialRating={0}
                                 onChange={handleRate}
                                 className='ml-2 text-yellow-400'

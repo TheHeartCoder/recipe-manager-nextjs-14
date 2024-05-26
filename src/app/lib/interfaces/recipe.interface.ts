@@ -12,7 +12,7 @@ export interface Recipe {
     authorId: string;
     author: {
         firstName: string;
-        lastname: string;
+        lastName: string;
         image: string;
         email: string;
     };

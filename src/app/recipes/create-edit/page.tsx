@@ -7,7 +7,7 @@ const RecipeUpsertPage: FC<{
         recipeId?: string;
     };
 }> = async ({ searchParams }) => {
-    let recipe = {};
+    let recipe: any = {};
     if (searchParams?.recipeId) {
         recipe = await getReciepe(searchParams?.recipeId || '');
     }

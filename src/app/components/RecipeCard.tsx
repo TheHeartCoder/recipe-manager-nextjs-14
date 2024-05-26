@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { deleteRecipe, deleteSavedRecipe } from '../action';
 import { Recipe } from '@prisma/client';
+import Image from 'next/image';
 
 const RecipeCard: React.FC<{
     recipe: Recipe;
@@ -11,14 +12,10 @@ const RecipeCard: React.FC<{
     isMyRecipe?: boolean;
     isSavedRecipe?: boolean;
 }> = ({ recipe, userId, isMyRecipe, isSavedRecipe }) => {
-    console.log(recipe);
-
     const handleDelete = async (e: any) => {
         e.preventDefault();
         if (!userId) return;
         try {
-            console.log(recipe);
-
             if (isSavedRecipe) {
                 await deleteSavedRecipe(userId || '', recipe.recipeId);
             } else {
