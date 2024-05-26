@@ -39,9 +39,5 @@ export const sortMethods: any = {
     BestRated: {
         label: 'Best Rated',
         orderBy: { rating: 'desc' }
-    },
-    Likes: {
-        label: 'Most Liked',
-        orderBy: { likesCount: 'desc' }
     }
 };

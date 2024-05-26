@@ -34,7 +34,6 @@ model Recipe {
   steps                String[]
   image                String
   category             String
-  likesCount           Int      @default(0)
   rating               Float?
   cookingTimeInMinutes Int
   createdAt            DateTime @default(now())

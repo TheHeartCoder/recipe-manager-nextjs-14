@@ -5,6 +5,7 @@ import { notFound, redirect } from 'next/navigation';
 import { z } from 'zod';
 import { sortMethods } from './constants/recipe.constants';
 import { clerkClient } from '@clerk/nextjs/server';
+import { revalidatePath } from 'next/cache';
 
 const recipeSchema = z.object({
     title: z.string(),
@@ -193,3 +194,70 @@ export async function updateRecipe(
     }
     redirect('/recipes/' + recipe?.recipeId);
 }
+
+export async function saveRecipe(userId: string, recipeId: string) {
+    try {
+        if (!userId || !recipeId) {
+            throw new Error('Invalid user or recipe id');
+        }
+
+        await prisma.savedRecipe.create({
+            data: { userId, recipeId }
+        });
+    } catch (error: any) {
+        console.log(error);
+        throw new Error(error.message || 'Internal server error');
+    }
+    redirect('/recipes/my/saved');
+}
+
+export async function saveRating(
+    userId: string,
+    recipeId: string,
+    rating: number
+) {
+    try {
+        if (!userId || !recipeId || !rating) {
+            throw new Error('Invalid data');
+        }
+
+        await prisma.rating.create({
+            data: { userId, recipeId, rating }
+        });
+
+        const ratings = await prisma.rating.findMany({
+            where: { recipeId }
+        });
+
+        const avgRating =
+            ratings.reduce((acc, curr) => acc + curr.rating, 0) /
+            ratings.length;
+
+        await prisma.recipe.update({
+            where: { recipeId },
+            data: { rating: avgRating }
+        });
+    } catch (error: any) {
+        console.log(error);
+        throw new Error(error.message || 'Internal server error');
+    }
+    revalidatePath(`/recipes/${recipeId}`);
+}
+
+export const getSavedRecipe = cache(
+    async (recipeId: string, userId: string) => {
+        const savedRecipe = await prisma.savedRecipe.findFirst({
+            where: { recipeId, userId }
+        });
+        return savedRecipe;
+    }
+);
+
+export const getSavedRating = cache(
+    async (recipeId: string, userId: string) => {
+        const rating = await prisma.rating.findFirst({
+            where: { recipeId, userId }
+        });
+        return rating;
+    }
+);

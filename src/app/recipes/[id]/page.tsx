@@ -1,14 +1,25 @@
-import { getReciepe, getRecipes } from '@/app/action';
+import {
+    getReciepe,
+    getRecipes,
+    getSavedRating,
+    getSavedRecipe
+} from '@/app/action';
 import RecipeDetails from './components/RecipeDetails';
 import { FC } from 'react';
 import RecipeList from '@/app/components/RecipeList';
 import Link from 'next/link';
+import { auth } from '@clerk/nextjs/server';
 
 const RecipeDetailsPage: FC<{ params: { id: string } }> = async ({
     params
 }) => {
+    const { userId } = auth();
     const recipe = await getReciepe(params?.id);
     const data = await getRecipes({ category: recipe.category, limit: 4 });
+    const [existSavedRecipe, existRating] = await Promise.allSettled([
+        getSavedRecipe(userId || '', recipe.recipeId),
+        getSavedRating(userId || '', recipe.recipeId)
+    ]);
 
     const filteredRecipes = data.recipes?.filter(
         (r) => r.recipeId !== recipe.recipeId
@@ -16,7 +27,12 @@ const RecipeDetailsPage: FC<{ params: { id: string } }> = async ({
 
     return (
         <>
-            <RecipeDetails recipe={recipe} />
+            <RecipeDetails
+                recipe={recipe}
+                userId={userId || ''}
+                saved={existSavedRecipe ? true : false}
+                alreadyRated={existRating ? true : false}
+            />
             <hr />
             <div className='container mx-auto py-8 px-6'>
                 {filteredRecipes?.length > 0 && (
