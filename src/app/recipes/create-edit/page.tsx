@@ -8,11 +8,8 @@ const RecipeUpsertPage: FC<{
     };
 }> = async ({ searchParams }) => {
     let recipe = {};
-    console.log(searchParams?.recipeId);
-
     if (searchParams?.recipeId) {
         recipe = await getReciepe(searchParams?.recipeId || '');
-        console.log(recipe);
     }
     return (
         <div className='max-w-xl mx-auto px-4 py-8'>

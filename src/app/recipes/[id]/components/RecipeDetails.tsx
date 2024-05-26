@@ -4,6 +4,9 @@ import React, { FC } from 'react';
 import { useRouter } from 'next/navigation';
 
 const RecipeDetails: FC<{ recipe: any }> = ({ recipe }) => {
+    console.log(recipe);
+
+    // const response = await clerkClient.users.getUser(recipe.authorId);
     const router = useRouter();
     const [liked, setLiked] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -206,11 +209,17 @@ const RecipeDetails: FC<{ recipe: any }> = ({ recipe }) => {
                     {recipe.ingredients.map(
                         (ingredient: string, index: number) => (
                             <li key={index} className='py-3'>
-                                <div className='flex items-center'>
-                                    <div className='w-4 h-4 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex-shrink-0 mr-3'></div>
+                                <div className='flex items-center justify-between'>
                                     <p className='text-sm font-medium text-gray-800'>
                                         {ingredient}
                                     </p>
+                                    <div className='flex items-center'>
+                                        <input
+                                            type='checkbox'
+                                            className='h-6 w-6 text-indigo-600 border-gray-300 rounded cursor-pointer focus:ring-indigo-500'
+                                            name='ingredient'
+                                        />
+                                    </div>
                                 </div>
                             </li>
                         )
@@ -231,6 +240,24 @@ const RecipeDetails: FC<{ recipe: any }> = ({ recipe }) => {
                         </li>
                     ))}
                 </ul>
+            </div>
+            <div className='flex items-center border rounded-lg p-4 bg-white shadow-md mt-4'>
+                <h3 className='mr-4'>Published By, </h3>
+                {/* Rounded small image */}
+                <div className='flex-shrink-0'>
+                    <img
+                        className='h-12 w-12 rounded-full'
+                        src={recipe?.author?.image}
+                        alt='User Image'
+                    />
+                </div>
+                {/* Name and email address */}
+                <div className='ml-4'>
+                    <div className='font-semibold text-lg'>
+                        {recipe?.author?.firstName} {recipe?.author?.lastName}
+                    </div>
+                    <div className='text-gray-600'>{recipe?.author?.email}</div>
+                </div>
             </div>
         </div>
     );

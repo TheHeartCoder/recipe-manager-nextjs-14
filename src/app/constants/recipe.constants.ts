@@ -17,9 +17,31 @@ export const CATEGORY = [
     'Bakery',
     'Cakes',
     'Coffee',
-    'Tea',
+    'Thai',
     'Beverages',
     'Smoothies',
     'Juices',
-    'Smoothies'
+    'Japanese',
+    'Indian',
+    'Italian',
+    'Mexican'
 ];
+
+export const sortMethods: any = {
+    NewestFirst: {
+        label: 'Newest First',
+        orderBy: { createdAt: 'desc' }
+    },
+    LessCookingTime: {
+        label: 'Less Cooking Time',
+        orderBy: { cookingTimeInMinutes: 'asc' }
+    },
+    BestRated: {
+        label: 'Best Rated',
+        orderBy: { rating: 'desc' }
+    },
+    Likes: {
+        label: 'Most Liked',
+        orderBy: { likesCount: 'desc' }
+    }
+};

@@ -3,6 +3,8 @@ import { cache } from 'react';
 import { prisma } from './lib/prisma';
 import { notFound, redirect } from 'next/navigation';
 import { z } from 'zod';
+import { sortMethods } from './constants/recipe.constants';
+import { clerkClient } from '@clerk/nextjs/server';
 
 const recipeSchema = z.object({
     title: z.string(),
@@ -17,9 +19,24 @@ const recipeSchema = z.object({
 type Recipe = z.infer<typeof recipeSchema>;
 
 export const getReciepe = cache(async (recipeId: string) => {
-    const recipe = await prisma.recipe.findUnique({ where: { recipeId } });
+    const recipe = await prisma.recipe.findUnique({
+        where: { recipeId }
+    });
     if (!recipe) notFound();
-    return recipe;
+    const response = await clerkClient.users.getUser(recipe.authorId);
+    console.log(response);
+    console.log(response.emailAddresses[0].emailAddress);
+
+    return {
+        ...recipe,
+        author: {
+            email: response.emailAddresses[0].emailAddress,
+            id: response.id,
+            firstName: response.firstName,
+            lastName: response.lastName,
+            image: response.imageUrl
+        }
+    };
 });
 
 // Function to get recipes by various filters
@@ -30,16 +47,29 @@ export const getRecipes = cache(
         page?: number;
         limit?: number;
         category?: string;
+        sortBy?: string;
     }) => {
-        const { searchText, authorId, page = 1, limit = 10, category } = data;
+        const {
+            searchText,
+            authorId,
+            page = 1,
+            limit = 12,
+            category,
+            sortBy
+        } = data;
 
         try {
             let whereClause: any = {};
+            let orderByClause: any = {};
 
             if (authorId) {
                 whereClause = {
                     ...whereClause,
                     authorId
+                };
+                orderByClause = {
+                    ...orderByClause,
+                    createdAt: 'desc'
                 };
             }
 
@@ -57,15 +87,16 @@ export const getRecipes = cache(
                 };
             }
 
+            if (sortBy) {
+                orderByClause = sortMethods[sortBy]?.orderBy;
+            }
+
             const recipes = await prisma.recipe.findMany({
                 where: whereClause,
                 take: limit || 12,
-                skip: (page - 1) * limit
+                skip: (page - 1) * limit,
+                orderBy: orderByClause
             });
-
-            if (!recipes || recipes.length === 0) {
-                notFound(); // Assuming `notFound` is a function that handles 404 errors
-            }
 
             return { recipes, page: data?.page || 1 };
         } catch (error: any) {

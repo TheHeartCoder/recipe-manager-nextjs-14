@@ -11,6 +11,7 @@ const MyRecipes: FC<{
         limit: number;
         category: string;
         searchText: string;
+        sortBy: string;
     };
 }> = async ({ searchParams }) => {
     const { userId } = auth();
@@ -18,10 +19,7 @@ const MyRecipes: FC<{
     if (userId) {
         result = await getRecipes({
             authorId: userId,
-            page: searchParams.page,
-            limit: searchParams.limit,
-            category: searchParams.category,
-            searchText: searchParams.searchText
+            ...searchParams
         });
     } else {
         notFound();
@@ -29,11 +27,16 @@ const MyRecipes: FC<{
 
     return (
         <main className='container mx-auto py-8 px-6'>
-            <SearchZone />
+            <SearchZone
+                path={'/recipes/my/all'}
+                searchValue={searchParams.searchText}
+                sortValue={searchParams.sortBy}
+            />
             <RecipeList
                 recipes={result.recipes}
                 currentPage={result.page}
                 path={'/recipes/my/all'}
+                isMyRecipe={true}
             />
         </main>
     );

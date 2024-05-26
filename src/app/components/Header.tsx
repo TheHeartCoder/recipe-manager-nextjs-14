@@ -1,42 +1,128 @@
 // components/Header.js
-
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
-// import { currentUser } from '@clerk/nextjs/server';s
+'use client';
+import {
+    SignedIn,
+    SignedOut,
+    SignInButton,
+    UserButton,
+    useUser
+} from '@clerk/nextjs';
 import Link from 'next/link';
 import { CATEGORY } from '../constants/recipe.constants';
+import { useState } from 'react';
+import useClickOutside from '../hooks/useClickOutSide';
 
 interface HeaderProps {}
 
-const Header: React.FC<HeaderProps> = async () => {
+const Header: React.FC<HeaderProps> = () => {
+    const user = useUser();
+    const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
+    const [recipeMenuOpen, setRecipeMenuOpen] = useState(false);
+
+    const recipeMenuRef: any = useClickOutside(() => {
+        setRecipeMenuOpen(false);
+    });
+
+    const categoryMenuRef: any = useClickOutside(() => {
+        setCategoryMenuOpen(false);
+    });
+
     return (
-        <header className='bg-white shadow-md py-4'>
-            <div className='container mx-auto flex justify-between items-center'>
+        <header className='bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 shadow-md py-4'>
+            <div className='container mx-auto flex justify-between items-center px-4'>
                 <Link legacyBehavior href='/'>
-                    <a className='text-2xl font-bold text-gray-800'>
-                        Foodies - The recipe book
+                    <a className='text-3xl font-bold text-white'>
+                        Foodies - The Recipe Book
                     </a>
                 </Link>
                 <nav>
-                    <ul className='flex space-x-6'>
-                        <li className='relative'>
-                            <button className='text-gray-800 hover:text-blue-500'>
+                    <ul className='flex space-x-8 items-center'>
+                        <li>
+                            <Link href='/recipes/create-edit' legacyBehavior>
+                                <a className='flex items-center text-white hover:text-gray-300 transition-colors duration-300'>
+                                    <svg
+                                        xmlns='http://www.w3.org/2000/svg'
+                                        fill='none'
+                                        viewBox='0 0 24 24'
+                                        strokeWidth={1.5}
+                                        stroke='currentColor'
+                                        className='w-6 h-6 mr-2'
+                                    >
+                                        <path
+                                            strokeLinecap='round'
+                                            strokeLinejoin='round'
+                                            d='M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+                                        />
+                                    </svg>
+                                    New Recipe
+                                </a>
+                            </Link>
+                        </li>
+                        <li className='relative' ref={categoryMenuRef}>
+                            <button
+                                className='text-white hover:text-gray-300 transition-colors duration-300'
+                                onClick={() =>
+                                    setCategoryMenuOpen(!categoryMenuOpen)
+                                }
+                            >
                                 Categories
                             </button>
-                            <ul className='absolute top-full left-0 bg-white shadow-md py-2 px-4 rounded-md mt-1 hidden'>
+                            <ul
+                                className={`absolute top-full left-0 bg-white shadow-lg py-2 rounded-md mt-1 ${
+                                    categoryMenuOpen ? 'block' : 'hidden'
+                                }`}
+                            >
                                 {CATEGORY.map((category: string) => (
-                                    <li key={category}>
+                                    <li key={category} className='px-4 py-2'>
                                         <Link
-                                            legacyBehavior
-                                            href={`/category/${category.toLowerCase()}`}
+                                            href={`/?category=${category}`}
+                                            className='text-gray-800 hover:text-blue-500 transition-colors duration-300'
                                         >
-                                            <a className='text-gray-800 hover:text-blue-500'>
-                                                {category}
-                                            </a>
+                                            {category}
                                         </Link>
                                     </li>
                                 ))}
                             </ul>
                         </li>
+                        {user.isSignedIn && (
+                            <li className='relative' ref={recipeMenuRef}>
+                                <button
+                                    className='text-white hover:text-gray-300 transition-colors duration-300'
+                                    onClick={() =>
+                                        setRecipeMenuOpen(!recipeMenuOpen)
+                                    }
+                                >
+                                    Recipes
+                                </button>
+                                <ul
+                                    className={`absolute top-full left-0 bg-white shadow-lg py-2 rounded-md mt-1 ${
+                                        recipeMenuOpen ? 'block' : 'hidden'
+                                    }`}
+                                >
+                                    <li className='px-4 py-2'>
+                                        <Link
+                                            href={`/recipes/my/all`}
+                                            legacyBehavior
+                                        >
+                                            <a className='text-gray-800 hover:text-blue-500 transition-colors duration-300'>
+                                                Mine
+                                            </a>
+                                        </Link>
+                                    </li>
+                                    <li className='px-4 py-2'>
+                                        <Link
+                                            href={`/recipes/my/saved`}
+                                            legacyBehavior
+                                        >
+                                            <a className='text-gray-800 hover:text-blue-500 transition-colors duration-300'>
+                                                Saved
+                                            </a>
+                                        </Link>
+                                    </li>
+                                </ul>
+                            </li>
+                        )}
+
                         <li>
                             <SignedOut>
                                 <SignInButton />
@@ -44,20 +130,6 @@ const Header: React.FC<HeaderProps> = async () => {
                             <SignedIn>
                                 <UserButton />
                             </SignedIn>
-                        </li>
-                        <li>
-                            <Link href='/recipes/create-edit' legacyBehavior>
-                                <a className='text-gray-800 hover:text-blue-500'>
-                                    New Recipe
-                                </a>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href='/my-recipes' legacyBehavior>
-                                <a className='text-gray-800 hover:text-blue-500'>
-                                    My Recipes
-                                </a>
-                            </Link>
                         </li>
                     </ul>
                 </nav>
