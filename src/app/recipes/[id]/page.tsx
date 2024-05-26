@@ -14,7 +14,7 @@ const RecipeDetailsPage: FC<{ params: { id: string } }> = async ({
     params
 }) => {
     const { userId } = auth();
-    const recipe = await getReciepe(params?.id);
+    const recipe: any = await getReciepe(params?.id);
     const data = await getRecipes({ category: recipe.category, limit: 4 });
     const [existSavedRecipe, existRating] = await Promise.all([
         getSavedRecipe(recipe.recipeId, userId || ''),
