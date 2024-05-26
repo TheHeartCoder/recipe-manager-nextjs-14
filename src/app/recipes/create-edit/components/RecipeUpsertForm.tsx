@@ -2,12 +2,13 @@
 import { createRecipe, updateRecipe } from '@/app/action';
 import { CATEGORY } from '@/app/constants/recipe.constants';
 import { useUser } from '@clerk/nextjs';
+import { Recipe } from '@prisma/client';
 import { FC, Key, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 
 const RecipeUpsertForm: FC<{
     recipeId: string;
-    existRecipe: Record<string, any>;
+    existRecipe: Recipe;
 }> = ({ recipeId, existRecipe }) => {
     const { pending } = useFormStatus();
     const user = useUser();

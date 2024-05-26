@@ -20,12 +20,9 @@ const RecipeDetailsPage: FC<{ params: { id: string } }> = async ({
         getSavedRecipe(recipe.recipeId, userId || ''),
         getSavedRating(recipe.recipeId, userId || '')
     ]);
-
     const filteredRecipes = data.recipes?.filter(
         (r) => r.recipeId !== recipe.recipeId
     );
-
-    console.log(existRating, existSavedRecipe);
 
     return (
         <>

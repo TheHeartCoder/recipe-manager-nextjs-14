@@ -42,7 +42,7 @@ const RecipeList: FC<{
                             <RecipeCard
                                 key={recipe.id}
                                 recipe={recipe}
-                                userId={userId}
+                                userId={userId || ''}
                                 isMyRecipe={isMyRecipe || false}
                                 isSavedRecipe={isSavedRecipe || false}
                             />

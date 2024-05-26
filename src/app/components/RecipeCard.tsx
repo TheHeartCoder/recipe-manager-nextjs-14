@@ -3,16 +3,7 @@
 // import { User } from '@clerk/nextjs/server';
 import Link from 'next/link';
 import { deleteRecipe, deleteSavedRecipe } from '../action';
-
-interface Recipe {
-    recipeId: string;
-    title: string;
-    image: string;
-    rating: number;
-    cookingTimeInMinutes: string;
-    category: string;
-    _id: string;
-}
+import { Recipe } from '@prisma/client';
 
 const RecipeCard: React.FC<{
     recipe: Recipe;

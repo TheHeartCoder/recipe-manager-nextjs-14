@@ -4,9 +4,10 @@ import React, { FC } from 'react';
 import { useRouter } from 'next/navigation';
 import Rating from 'react-rating';
 import { saveRating, saveRecipe } from '@/app/action';
+import { Recipe } from '@/app/lib/interfaces/recipe.interface';
 
 const RecipeDetails: FC<{
-    recipe: any;
+    recipe: Recipe;
     userId: string;
     alreadyRated?: boolean;
     saved?: boolean;
@@ -84,7 +85,7 @@ const RecipeDetails: FC<{
                         </button>
                     )}
 
-                    {!alreadyRated && (
+                    {!alreadyRated && recipe.authorId !== userId && (
                         <div className='flex items-center space-x-2'>
                             <Rating
                                 initialRating={0}
